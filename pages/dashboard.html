@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <header>
+        <h1>Panel de Moderadores</h1>
+        <nav>
+            <ul>
+                <li><a href="dashboard.html">Inicio</a></li>
+                <li><a href="reportes.html">Reportes</a></li>
+                <li><a href="estadisticas.html">Estadísticas</a></li>
+                <li><a href="historial.html">Historial</a></li>
+                <li><a href="dashboard.html">Admin</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <h2>Menú Principal</h2>
+        <div class="dashboard-buttons">
+            <button onclick="location.href='reportes.html'">Gestionar Reportes</button>
+            <button onclick="location.href='estadisticas.html'">Ver Estadísticas</button>
+            <button onclick="location.href='historial.html'">Historial de Reportes</button>
+            <button onclick="location.href='index.html'">Cerrar Sesión</button>
+            <button onclick="location.href='usuarios.html'">Usuarios</button>
+        </div>
+
+        <h2>Lista de Reportes</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tipo</th>
+                    <th>Ubicación</th>
+                    <th>Prioridad</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tablaReportes">
+                <tr>
+                    <td>1</td>
+                    <td>Bache</td>
+                    <td>Avenida Central</td>
+                    <td>Alto</td>
+                    <td>Pendiente</td>
+                    <td><button onclick="actualizarEstado(1)">Revisar</button></td>
+                </tr>
+            </tbody>
+        </table>
+    </main>
+
+    <script src="../js/scripts.js"></script>
+</body>
+</html>
