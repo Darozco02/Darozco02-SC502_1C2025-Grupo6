@@ -65,21 +65,21 @@ label {
     margin-top: 10px;
 }
 
-input, select, button {
+input, select, button, .btn {
     padding: 10px;
     margin-top: 5px;
     border: 1px solid #ccc;
     border-radius: 5px;
 }
 
-button {
+button, .btn {
     background-color: #003366;
     color: white;
     cursor: pointer;
     border: none;
 }
 
-button:hover {
+button:hover, .btn:hover {
     background-color: #002244;
 }
 
@@ -103,3 +103,9 @@ th {
     background-color: #003366;
     color: white;
 }
+
+#cartas{
+    display: flex;
+    justify-content: center;
+}
+
