@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa de Reportes Viales</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        
+        #map-container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #map {
+            flex: 1;
+            width: 100%;
+        }
+        
+        .controls {
+            background-color: #fff;
+            padding: 15px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .filter-group {
+            margin-right: 20px;
+        }
+        
+        .filter-group label {
+            margin-right: 10px;
+        }
+        
+        .legend {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+            border-radius: 50%;
+        }
+        
+        .marker-popup {
+            max-width: 300px;
+        }
+        
+        .marker-popup img {
+            max-width: 100%;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        
+        .marker-popup .status {
+            font-weight: bold;
+            margin-top: 8px;
+        }
+        
+        .marker-popup .status.pending {
+            color: #e74c3c;
+        }
+        
+        .marker-popup .status.in-progress {
+            color: #f39c12;
+        }
+        
+        .marker-popup .status.completed {
+            color: #27ae60;
+        }
+        
+        .refresh-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .refresh-btn:hover {
+            background: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div id="map-container">
+        <div class="controls">
+            <div>
+                <div class="filter-group">
+                    <label for="filter-type">Tipo de problema:</label>
+                    <select id="filter-type">
+                        <option value="all">Todos</option>
+                        <option value="bache">Baches</option>
+                        <option value="grieta">Grietas</option>
+                        <option value="hundimiento">Hundimientos</option>
+                        <option value="drenaje">Drenajes</option>
+                        <option value="senalizacion">Señalización</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="filter-priority">Prioridad:</label>
+                    <select id="filter-priority">
+                        <option value="all">Todas</option>
+                        <option value="alta">Alta (Rojo)</option>
+                        <option value="media">Media (Amarillo)</option>
+                        <option value="baja">Baja (Verde)</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="filter-status">Estado:</label>
+                    <select id="filter-status">
+                        <option value="all">Todos</option>
+                        <option value="pendiente">Pendiente</option>
+                        <option value="en_proceso">En proceso</option>
+                        <option value="completado">Completado</option>
+                    </select>
+                </div>
+            </div>
+            
+            <button class="refresh-btn" id="refresh-map">Actualizar Mapa</button>
+        </div>
+        
+        <div id="map"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    
+    <script>
+        const map = L.map('map').setView([9.9281, -84.0907], 8);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+        
+        let markersLayer = L.layerGroup().addTo(map);
+        
+        const legend = L.control({position: 'bottomright'});
+        
+        legend.onAdd = function(map) {
+            const div = L.DomUtil.create('div', 'legend');
+            div.innerHTML = `
+                <h4>Leyenda</h4>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #e74c3c;"></div>
+                    <span>Prioridad Alta</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #f39c12;"></div>
+                    <span>Prioridad Media</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #27ae60;"></div>
+                    <span>Prioridad Baja</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #000; border: 2px solid #e74c3c;"></div>
+                    <span>Pendiente</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #000; border: 2px solid #f39c12;"></div>
+                    <span>En proceso</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #000; border: 2px solid #27ae60;"></div>
+                    <span>Completado</span>
+                </div>
+            `;
+            return div;
+        };
+        
+        legend.addTo(map);
+        
+        function loadReports() {
+            const sampleData = [
+                {
+                    id: 1,
+                    tipo: 'bache',
+                    descripcion: 'Bache profundo que causa daños a los vehículos',
+                    latitud: 9.9281,
+                    longitud: -84.0907,
+                    prioridad: 'alta',
+                    estado: 'pendiente',
+                    fecha: '2025-03-10',
+                    imagen: 'https://via.placeholder.com/300x200?text=Bache+Profundo'
+                },
+                {
+                    id: 2,
+                    tipo: 'grieta',
+                    descripcion: 'Grieta en el pavimento que se extiende por varios metros',
+                    latitud: 9.9000,
+                    longitud: -84.1000,
+                    prioridad: 'media',
+                    estado: 'en_proceso',
+                    fecha: '2025-03-08',
+                    imagen: 'https://via.placeholder.com/300x200?text=Grieta+Pavimento'
+                },
+                {
+                    id: 3,
+                    tipo: 'senalizacion',
+                    descripcion: 'Falta señalización en cruce peligroso',
+                    latitud: 9.9500,
+                    longitud: -84.0800,
+                    prioridad: 'alta',
+                    estado: 'completado',
+                    fecha: '2025-03-05',
+                    imagen: 'https://via.placeholder.com/300x200?text=Senalizacion+Faltante'
+                },
+                {
+                    id: 4,
+                    tipo: 'drenaje',
+                    descripcion: 'Sistema de drenaje obstruido causa inundaciones',
+                    latitud: 9.9100,
+                    longitud: -84.0600,
+                    prioridad: 'baja',
+                    estado: 'pendiente',
+                    fecha: '2025-03-12',
+                    imagen: 'https://via.placeholder.com/300x200?text=Drenaje+Obstruido'
+                },
+                {
+                    id: 5,
+                    tipo: 'hundimiento',
+                    descripcion: 'Hundimiento significativo en carretera principal',
+                    latitud: 9.9400,
+                    longitud: -84.1200,
+                    prioridad: 'alta',
+                    estado: 'en_proceso',
+                    fecha: '2025-03-09',
+                    imagen: 'https://via.placeholder.com/300x200?text=Hundimiento+Carretera'
+                }
+            ];
+            
+            displayReports(sampleData);
+        }
+        
+        function displayReports(reports) {
+            markersLayer.clearLayers();
+            
+            const filterType = document.getElementById('filter-type').value;
+            const filterPriority = document.getElementById('filter-priority').value;
+            const filterStatus = document.getElementById('filter-status').value;
+            
+            const filteredReports = reports.filter(report => {
+                const typeMatch = filterType === 'all' || report.tipo === filterType;
+                const priorityMatch = filterPriority === 'all' || report.prioridad === filterPriority;
+                const statusMatch = filterStatus === 'all' || report.estado === filterStatus;
+                
+                return typeMatch && priorityMatch && statusMatch;
+            });
+            
+            filteredReports.forEach(report => {
+                let markerColor;
+                switch(report.prioridad) {
+                    case 'alta':
+                        markerColor = '#e74c3c';
+                        break;
+                    case 'media':
+                        markerColor = '#f39c12';
+                        break;
+                    case 'baja':
+                        markerColor = '#27ae60';
+                        break;
+                    default:
+                        markerColor = '#3498db';
+                }
+                
+                let markerBorder;
+                let statusText;
+                let statusClass;
+                
+                switch(report.estado) {
+                    case 'pendiente':
+                        markerBorder = '#e74c3c';
+                        statusText = 'Pendiente';
+                        statusClass = 'pending';
+                        break;
+                    case 'en_proceso':
+                        markerBorder = '#f39c12';
+                        statusText = 'En proceso';
+                        statusClass = 'in-progress';
+                        break;
+                    case 'completado':
+                        markerBorder = '#27ae60';
+                        statusText = 'Completado';
+                        statusClass = 'completed';
+                        break;
+                }
+                
+                const customIcon = L.divIcon({
+                    className: 'custom-marker',
+                    html: `<div style="background-color: ${markerColor}; border: 2px solid ${markerBorder}; width: 12px; height: 12px; border-radius: 50%;"></div>`,
+                    iconSize: [15, 15],
+                    iconAnchor: [7, 7],
+                    popupAnchor: [0, -7]
+                });
+                
+                const marker = L.marker([report.latitud, report.longitud], { icon: customIcon });
+                
+                const popupContent = `
+                    <div class="marker-popup">
+                        <h3>Reporte #${report.id}</h3>
+                        <p><strong>Tipo:</strong> ${capitalizeFirstLetter(report.tipo)}</p>
+                        <p><strong>Descripción:</strong> ${report.descripcion}</p>
+                        <p><strong>Fecha:</strong> ${formatDate(report.fecha)}</p>
+                        <p><strong>Prioridad:</strong> ${capitalizeFirstLetter(report.prioridad)}</p>
+                        <p class="status ${statusClass}">Estado: ${statusText}</p>
+                        <img src="${report.imagen}" alt="Imagen del reporte">
+                    </div>
+                `;
+                
+                marker.bindPopup(popupContent);
+                markersLayer.addLayer(marker);
+            });
+        }
+        
+        function capitalizeFirstLetter(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+        
+        function formatDate(dateString) {
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            return new Date(dateString).toLocaleDateString('es-ES', options);
+        }
+        
+        document.getElementById('filter-type').addEventListener('change', loadReports);
+        document.getElementById('filter-priority').addEventListener('change', loadReports);
+        document.getElementById('filter-status').addEventListener('change', loadReports);
+        document.getElementById('refresh-map').addEventListener('click', loadReports);
+        
+        loadReports();
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        const userLat = position.coords.latitude;
+                        const userLng = position.coords.longitude;
+                        map.setView([userLat, userLng], 13);
+                        
+                        L.marker([userLat, userLng], {
+                            icon: L.divIcon({
+                                className: 'user-marker',
+                                html: '<div style="background-color: #3498db; border: 2px solid white; width: 12px; height: 12px; border-radius: 50%;"></div>',
+                                iconSize: [15, 15],
+                                iconAnchor: [7, 7]
+                            })
+                        }).addTo(map).bindPopup('Tu ubicación actual').openPopup();
+                    },
+                    function(error) {
+                        console.log('Error al obtener la ubicación:', error);
+                    }
+                );
+            }
+        });
+    </script>
+</body>
+</html>
