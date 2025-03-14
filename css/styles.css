@@ -109,3 +109,9 @@ th {
     justify-content: center;
 }
 
+.dashboard-buttons{
+    display: flex;
+    justify-content: space-evenly;
+
+}
+
