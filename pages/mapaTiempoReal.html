@@ -4,9 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mapa de Reportes Viales</title>
-    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
-    
+    <link rel="stylesheet" href="../css/styles.css">
     <style>
         body {
             margin: 0;
@@ -106,6 +105,21 @@
     </style>
 </head>
 <body>
+    <header>
+        <h1>Historial de Reportes</h1>
+        <nav>
+            <ul>
+                <li><a href="dashboard.html">Inicio</a></li>
+                <li><a href="reportes.html">Reportes</a></li>
+                <li><a href="estadisticas.html">Estadísticas</a></li>
+                <li><a href="historial.html">Historial</a></li>
+                <li><a href="mapaTiempoReal.html">Mapa</a></li>
+                <li><a href="dashboard.html">Admin</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
     <div id="map-container">
         <div class="controls">
             <div>
@@ -147,7 +161,7 @@
         
         <div id="map"></div>
     </div>
-
+    </main>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
     
     <script>
