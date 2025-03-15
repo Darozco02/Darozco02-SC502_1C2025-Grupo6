@@ -24,12 +24,14 @@ document.addEventListener("DOMContentLoaded", function () {
             
             const tipo = document.getElementById("tipo").value;
             const ubicacion = document.getElementById("ubicacion").value;
+            const descripcionReporte = document.getElementById("descripcionReporte").value;
             const prioridad = document.getElementById("prioridad").value;
             
             const reporte = {
                 id: Date.now(),
                 tipo,
                 ubicacion,
+                descripcionReporte,
                 prioridad,
                 estado: "Pendiente"
             };
@@ -61,6 +63,7 @@ function cargarReportes() {
             <td>${reporte.id}</td>
             <td>${reporte.tipo}</td>
             <td>${reporte.ubicacion}</td>
+            <td>${reporte.descripcionReporte}</td>
             <td>${reporte.prioridad}</td>
             <td>${reporte.estado}</td>
             <td>
