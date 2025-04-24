@@ -24,7 +24,7 @@
 
     <main>
         <h2>Nuevo Reporte</h2>
-        <form id="reporteForm">
+        <form id="reporteForm" action="guardarReporte.php" method="POST">
             <label for="tipo">Tipo de incidente:</label>
             <select id="tipo" name="tipo">
                 <option value="bache">Bache</option>
