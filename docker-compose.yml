@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  mysql-db:
+    image: mysql:8.0
+    container_name: mysql-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: secret123
+      MYSQL_DATABASE: sistema_averias
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker-mysql-init:/docker-entrypoint-initdb.d
+    ports:
+      - "3306:3306"
+    networks:
+      - red_averias
+
+  php-web:
+    build: .
+    container_name: php-web
+    depends_on:
+      - mysql-db
+    ports:
+      - "8080:80"
+    volumes:
+      - ./pages:/var/www/html
+    networks:
+      - red_averias
+
+volumes:
+  mysql_data:
+
+networks:
+  red_averias:
