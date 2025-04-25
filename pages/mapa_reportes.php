@@ -156,7 +156,7 @@ $nombre_usuario = $_SESSION['usuario']['nombre'];
                 let popupContent = `<p><b>${rep.tipo}</b><br>${rep.descripcion}</p>
                               <p>Prioridad: ${rep.prioridad}<br>Estado: ${rep.estado}</p>`;
                 if (rep.imagen_url) {
-                    popupContent += `<img src="${rep.imagen_url}" alt="Evidencia" style="max-width:100%; height:auto;">`;
+                    popupContent += `<img src="/${rep.imagen_url}" alt="Evidencia" style="max-width:100%; height:auto;">`;
                 }
                 // Si es admin, agregar botones de acciones
                 if (esAdmin) {
