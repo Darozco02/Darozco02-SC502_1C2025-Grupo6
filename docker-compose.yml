@@ -10,7 +10,7 @@ services:
       MYSQL_DATABASE: sistema_averias
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./docker-mysql-init:/docker-entrypoint-initdb.d
+      - ./initdb/estructura_completa.sql:/docker-entrypoint-initdb.d/estructura_completa.sql:ro
     ports:
       - "3306:3306"
     networks:

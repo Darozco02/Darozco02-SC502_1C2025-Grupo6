@@ -1,14 +1,10 @@
-# Usa una imagen base con PHP y Apache
-FROM php:8.2-apache
+FROM php:8.0-apache
 
-# Instala extensiones necesarias (como mysqli o pdo_mysql)
-RUN docker-php-ext-install pdo pdo_mysql mysqli
+# Instalar extensiones necesarias
+RUN docker-php-ext-install pdo pdo_mysql
 
-# Copia el código fuente al directorio raíz de Apache
-COPY ./pages/ /var/www/html/
+# Copiar el contenido del proyecto al contenedor
+COPY . /var/www/html/
 
-# Establece permisos adecuados
-RUN chown -R www-data:www-data /var/www/html && chmod -R 755 /var/www/html
-
-# Habilita el módulo de reescritura de Apache
+# Dar permisos y habilitar apache mod_rewrite si lo necesitas
 RUN a2enmod rewrite
