@@ -2,28 +2,31 @@
 session_start();
 require_once 'conexiones.php';
 
-if (!isset($_SESSION['usuario']) || $_SESSION['usuario']['es_admin'] != 1) {
-    die("Acceso denegado.");
+// Validar sesión
+if (!isset($_SESSION['usuario']) || $_SESSION['usuario']['rol'] !== 'admin') {
+    http_response_code(403);
+    die("Acceso no autorizado.");
 }
 
-if (!isset($_GET['id']) || !isset($_GET['priority']) ||
-    !is_numeric($_GET['id']) || !is_numeric($_GET['priority'])) {
-    die("Datos inválidos.");
+// Validar datos
+if (!isset($_POST['id'], $_POST['estado'], $_POST['prioridad'])) {
+    http_response_code(400);
+    die("Datos incompletos.");
 }
 
-$id_reporte   = $_GET['id'];
-$nueva_prioridad = $_GET['priority'];
+$id_reporte = intval($_POST['id']);
+$id_estado = intval($_POST['estado']);
+$id_prioridad = intval($_POST['prioridad']);
 
 try {
-    // Actualizar la prioridad del reporte
-    $stmt = $pdo->prepare("UPDATE reportes SET id_prioridad = :prio WHERE id_reporte = :id");
-    $stmt->execute([':prio' => $nueva_prioridad, ':id' => $id_reporte]);
-    if(isset($_SERVER['HTTP_X_REQUESTED_WITH'])) {
-        echo "ok";
-    } else {
-        echo "Prioridad actualizada.";
-    }
+    $stmt = $pdo->prepare("UPDATE reportes SET id_estado = :estado, id_prioridad = :prioridad WHERE id_reporte = :id");
+    $stmt->execute([
+        ':estado' => $id_estado,
+        ':prioridad' => $id_prioridad,
+        ':id' => $id_reporte
+    ]);
+    header("Location: mapa_reportes.php");
     exit;
 } catch (PDOException $e) {
-    die("Error al cambiar la prioridad: " . $e->getMessage());
+    echo "Error al actualizar el reporte: " . $e->getMessage();
 }
